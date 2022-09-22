@@ -1,18 +1,48 @@
 '''
 Problem: To implement a chatbot that is named Eliza and will engage with the user in the command line.
 
-This file will implement a Chatbot named Eliza. Eliza will be able to have a conversation with the 
-user and be able to keep up a conversation until the user breaks the conversation.
+This file will implement a Chatbot named Eliza. Eliza will be able to have a conversation about the users feeling 
+and be able to keep up a conversation until the user breaks the conversation.
 
-Usage instructions:
-As the user if Eliza asks you a question please start with your sentence with 'I' this will allow for 
-Eliza to give you the best feedback that is needed. 
+
+Usage Instructions:
+When Eliza asks for your name please use the format:
+    'My name is _________ ' - this will allow Eliza to take your name correctly
+    
+When Eliza asks 'how are you feeling' please use the format:
+    'I feel _______' - this will allow for eliza to provide the feedback for you as the user.
+    The current feelings that Eliza recognizes are:
+        happy
+        good
+        sad
+        mad
+        sick
+        healthy
+        bad
+        alright
+        great
+        
+    If you don't say these feelings, Eliza will ask for you to simplify your feelings
+    
+    If you still can't simplify your feelings the conversation will be ended.
+    
+    Once you have said your feeling, please start next question with:
+        'Because ________' - this will once again allow Eliza to say a appropriate repsonse
+        
+    Once you answer this question, Eliza will ask if you want to explore your feelings more and will ask
+    'How you are feeling?' again
+    
+    If at anytime you want to quit just type 'quit'
+     
 
 Example Conversation:
-Eliza: Hello 'user', how may I help you today?
-User: I am tired
-Eliza: Whay are you tired 'user'?
-User: Because I got little sleep.
+Eliza: 'Hi my name is Eliza, what is your name?
+User: 'My name is user
+Eliza: Hello user, how are you feeling today?
+User: I feel good
+Eliza: Why do you feel good?
+User: Because I got promoted at work.
+Eliza: Why don't you tell me more about your work?
 
 Libraries User:
 Regex
@@ -27,7 +57,8 @@ import re
 import nltk
 import random
 
-def greeting(): # This is the first thing the user will see with Eliza asking for the user's name.
+# This is the function that the user will see with Eliza asking for the user's name.
+def greeting(): 
     from nltk.tokenize import word_tokenize
     userName = input("Hi My Name is Eliza, what is your name? ") 
     if userName == '': # If the response was empty we ask the user again for their name.
@@ -35,23 +66,13 @@ def greeting(): # This is the first thing the user will see with Eliza asking fo
     
     nameList = word_tokenize(userName)  # Tokenize the sentence we get from the user to extract the user's name. should be nameList[3] 
     
-    name = nameList[3]
-    return name
-
-
-    # We use re.sub to extract the user's name and then ask them the a question with their name in the sentence.
-    firstQuestion = input(re.sub(r'(M|m)y name is (.+)', r'Hi \2. How are you feeling today', userName))
-    
-    xList = word_tokenize(firstQuestion)
-    
-    xList = [i.replace('you', 'me')for i in xList]
-    
-    if xList[0] == 'I' or xList[0] == 'i':
-        response = input(re.sub(r'(I|i) (.+) you', nameList[3] + r', Why do you \2?', firstQuestion))
-        return response
+    name = nameList[3] # set name to the name of the user in give input 'My name is userName' 
+    return name # return name to be used in conversation.
         
 name = greeting()
-feelings = [
+
+# These are the feelings that Eliza understands and will ask more questions about
+feelings = [ 
     [
         r"happy", 
         ["Why do you feel happy?"],
@@ -70,26 +91,54 @@ feelings = [
     ],
     [
         r"sick",
-        ["What do you think made you sick? "],
-    ]
+        ["When did you start to feel this way?"],
+    ],
+    [
+        r"bad",
+        ["How can I make you feel better?"],
+    ],
 ]
     
 
 
-
-
+# This is the function that the main conversation will be held
+# If the conversation is ended by the user typing 'quit' then this
+# function will be ended.
 def conversation(name):
     from nltk.tokenize import word_tokenize
     
     firstQuestion = input("Hello " + name + ", How are you feeling today")
-    fqToken = word_tokenize(firstQuestion)
-    while True:
-        for key in feelings:
-            if key[0] == fqToken[2]:
+    fqToken = word_tokenize(firstQuestion) # tokenize this sentence to extract the feeling that the user has.
+    while True :
+        feelingFound = False # this variable will tell Eliza if she knows the feeling that the user has said they have
+        
+        # loop through all the feelings that Eliza recognizes to check if the user inputted
+        # feeling matches.
+        for key in feelings: 
+            if key[0] == fqToken[2]: # If there is a match, you get the response that is corrrelated with that feeling and ask next question.
                 nextQuestion = key[1][0]
-                nextQuestion = input(nextQuestion + "OR Type 'quit' to end")
-       
-       
+                nextQuestion = nextQuestion + " OR Type 'quit' to end"
+                feelingFound = True
+                
+        # Variable to keep track if user wants to be asked more questions
+        keepGoing = False
+    
+        if feelingFound == True:
+            question = input(nextQuestion)       
+        
+        # Check to see if the feeling that user inputted is found, if not ask new question
+        # Once the user is asked the question, check feelings again to see if the simplified feeling 
+        # can be found. If not then ask the user to quit.
+        if feelingFound == False:
+            nextQuestion = input("Sorry " + name + " i don't understand your feeling please simplify OR type 'quit' to end")
+            for key in feelings:
+                if key[0] == fqToken[2]:
+                    nextQuestion = key[1][0]
+                    nextQuestion = input(nextQuestion + " OR Type 'quit' to end")
+                    feelingFound = True
+        
+        nextQuestion = input("Sorry I can't help you. Please type 'quit' to end our conversation")
+         
         if nextQuestion == 'quit':
             break
         
